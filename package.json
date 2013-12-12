@@ -1,0 +1,24 @@
+{
+  "name"        : "dripper",
+  "version"     : "0.0.0",
+  "description" : "CoffeeScript document generator",
+  "tags"        : [
+  ],
+  "author"      : {
+    "name" : "Daisuke Mino",
+    "email": "daisuke.mino@gmail.com"
+  },
+  "repository"  : {
+    "type": "git",
+    "url" : "https://minodisk@github.com/minodisk/dripper.git"
+  },
+  "engines"     : {
+  },
+  "license"     : "MIT",
+  "dependencies": {
+  },
+  "bin"         : {
+    "dripper": "./bin/dripper"
+  },
+  "main"        : "./lib/dripper"
+}
