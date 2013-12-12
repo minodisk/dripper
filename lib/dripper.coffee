@@ -19,7 +19,7 @@ class Code
     @tokens = coffee.tokens(source).map (el) -> new Token el
 
   filterJSDocs: ->
-    @tokens.filter (token, i, tokens) =>
+    @tokens.filter (token) =>
       return unless token.type is 'HERECOMMENT' and token.source.charAt(0) is '*'
       console.log token.toString()
       console.log @filterAt token.range.last_line + 1
