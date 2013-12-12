@@ -10,7 +10,7 @@
 
   should = chai.should();
 
-  sampleCode = "###\ntest\n###\n\n# single-line comment 1\nabc # single-line comment 2\n### herecomment 1 ###\nabc ### herecomment 2 ###\n\n###*\nclass\n###\nclass Foo\n\n  ###*\n  class property\n  ###\n  @a: 3\n\n  ###*\n  class method\n  ###\n  @add: (a, b) ->\n    new Foo a.value + b.value\n\n  ###*\n  prototype property\n  ###\n  a: 3\n\n  ###*\n  constructor\n  ###\n  constructor: (value = 0) ->\n\n  ###*\n  member method\n  ###\n  add: (value) ->\n    @value += value\n\n###*\nmethod\n###\n$.fn.bar = (selector) -> $.find selector";
+  sampleCode = "###\ntest\n###\n\n# single-line comment 1\nabc # single-line comment 2\n### herecomment 1 ###\nabc ### herecomment 2 ###\n\n###*\nclass\n###\nclass Foo\n\n  ###*\n  class property\n  ###\n  @a: 3\n\n  ###*\n  class method\n  ###\n  @add: (a, b) ->\n    new Foo a.value + b.value\n\n  ###*\n  prototype property\n  ###\n  a: 3\n\n  ###*\n  constructor\n  ###\n  constructor: (value = 0) ->\n\n  ###*\n  member method\n  ###\n  add: (value) ->\n    @value += value\n\n###*\nmethod\n###\n$.fn.bar = (selector, index = 0) -> $.find(selector).eq(index)";
 
   describe('dripper', function() {
     return it('should filter comment', function() {

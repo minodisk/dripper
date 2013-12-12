@@ -51,7 +51,7 @@ class Foo
 ###*
 method
 ###
-$.fn.bar = (selector) -> $.find selector
+$.fn.bar = (selector, index = 0) -> $.find(selector).eq(index)
 """
 
 describe 'dripper', ->
