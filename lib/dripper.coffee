@@ -4,27 +4,113 @@ coffee = require 'coffee-script'
 
 module.exports =
 
-  filter: (source) ->
-#    console.log coffee
-#    console.log coffee.compile code
+  parse: (source) ->
     code = new Code source
     code.filterJSDocs()
 
-  find: ->
+  render: (engine = 'ejs', options = {}) ->
+    renderer = new Renderer engine, options
+
+class Renderer
+
+  constructor: ->
+    engine = require engine
+    engine.render template, options
 
 
 class Code
 
   constructor: (source) ->
-    @tokens = coffee.tokens(source).map (el) -> new Token el
+    @tokens = coffee.tokens(source).map (el) ->
+      new Token el
 
   filterJSDocs: ->
-    @tokens.filter (token) =>
-      return unless token.type is 'HERECOMMENT' and token.source.charAt(0) is '*'
-      console.log token.toString()
-      console.log @filterAt token.range.last_line + 1
+    docs = []
 
-  filterAt: (line) -> @tokens.filter (token) -> token.range.first_line is line
+    indent = 0
+    classIndent = null
+    classDoc = null
+
+    @tokens.filter (token) =>
+      switch token.type
+        when 'INDENT'
+          indent += token.source
+          return
+
+        when 'OUTDENT'
+          indent -= token.source
+          if classIndent? and classIndent is indent
+            classDoc = classDoc.fixName()
+            docs.push classDoc
+            classDoc = null
+            classIndent = null
+          return
+
+        when 'HERECOMMENT'
+          return if token.source.charAt(0) isnt '*'
+          doc = new Doc token.source
+          param = null
+          isParam = false
+          isParamValue = false
+          @filterAt(token.range.last_line + 1).forEach (relatedToken) =>
+            { type, source } = relatedToken
+            switch type
+              when 'CLASS'
+                classDoc = doc = new ClassDoc doc.description
+                classDoc.type = type
+                classIndent = indent
+              when '@'
+                doc.modifier = 'STATIC'
+              when 'IDENTIFIER'
+                if isParam
+                  param = new Param source
+                  doc.pushParam param
+                else
+                  doc.name? source
+#              when '.'
+#                doc.pushName source
+              when '='
+                if isParam
+                  isParamValue = true
+                else
+                  doc.fixName()
+                  docs.push doc
+                  return
+              when ':'
+                return if isParam
+                doc.fixName()
+                if classDoc?
+                  if doc.modifier is 'STATIC'
+                    classDoc.pushStatic doc
+                  else
+                    doc.modifier = 'MEMBER'
+                    classDoc.pushMember doc
+                else
+                  docs.push doc
+              when 'PARAM_START'
+                isParam = true
+              when 'PARAM_END'
+                isParam = false
+              when '->', '=>'
+                doc.type = 'function'
+                '' # do nothing
+              else
+                if isParamValue
+                  isParamValue = false
+                  switch type
+                    when 'NUMBER'
+                      source = parseFloat source
+                  param.value = source
+
+        else
+          return
+
+    docs
+
+  filterAt: (line) ->
+    @tokens.filter (token) ->
+      token.range.first_line is line
+
 
 class Token
 
@@ -34,3 +120,43 @@ class Token
 
   toString: ->
     "[#{@type}] #{('' + @source).replace /\n/g, '\\n'}"
+
+
+class Doc
+
+  constructor: (description = '') ->
+    @type = 'variable'
+    @description = description.replace /^\*\s*(.*?)\s*$/, '$1'
+
+  name: (val) ->
+    unless val?
+      return @_name
+    @_name = val
+
+  fixName: ->
+    @name = @_name
+    delete @_name
+
+  pushParam: ->
+    unless @params?
+      @params = []
+    @params.push.apply @params, arguments
+
+
+class ClassDoc extends Doc
+
+  constructor: (@description = '') ->
+    super @description
+    @statics = []
+    @members = []
+
+  pushStatic: ->
+    @statics.push.apply @statics, arguments
+
+  pushMember: ->
+    @members.push.apply @members, arguments
+
+
+class Param
+
+  constructor: (@name, @value = null) ->
