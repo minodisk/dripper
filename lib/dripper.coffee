@@ -51,8 +51,8 @@ class Code
           return if token.source.charAt(0) isnt '*'
 
           doc = new Doc token.source
+          name = null
           param = null
-          names = []
           isParam = false
           isParamValue = false
           @filterAt(token.range.last_line + 1).forEach (relatedToken) =>
@@ -69,21 +69,19 @@ class Code
                   param = new Param source
                   doc.pushParam param
                 else
-                  names?.push source
-              when '.'
-                names?.push source
+                  name = source
+#              when '.'
+#                names?.push source
               when '='
                 if isParam
                   isParamValue = true
                 else
-                  doc.name = names.join ''
-                  names = null
+                  doc.name = name
                   docs.push doc
                   return
               when ':'
                 return if isParam
-                doc.name = names.join ''
-                names = null
+                doc.name = name
                 if classDoc?
                   if doc.modifier is 'static'
                     classDoc.pushStatic doc
@@ -129,9 +127,9 @@ class Token
 
 class Doc
 
-  constructor: (description = '') ->
+  constructor: (comment = '') ->
     @type = 'variable'
-    @description = description.replace /^\*\s*(.*?)\s*$/, '$1'
+    @description = new Description comment
 
   pushParam: ->
     unless @params?
@@ -156,3 +154,28 @@ class ClassDoc extends Doc
 class Param
 
   constructor: (@name, @value = null) ->
+
+
+class Description
+
+  rMeta: /^@(\S+)\s+(.*)/m
+  rComment: /^\*\s*(.*?)\s*$/
+
+  constructor: (comment) ->
+    @metas = []
+    comment = comment.replace @rMeta, =>
+      @metas.push new Meta arguments[1], arguments[2]
+      ''
+    @text = comment.replace @rComment, '$1'
+
+#    console.log @text
+#    console.log @metas
+
+
+class Meta
+
+  constructor: (@type, value) ->
+    switch type
+      when ''
+      else
+        @value = value
