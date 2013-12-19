@@ -133,4 +133,8 @@ $.fn.findAt = (selector, index = 0) -> @find(selector).eq(index)
     doc.type.should.be.equal 'function'
     doc.description.should.be.equal 'dotted function'
     doc.name.should.be.equal '$.fn.findAt'
+    doc.params[0].name.should.be.equal 'selector'
+    should.not.exist doc.params[0].value
+    doc.params[1].name.should.be.equal 'index'
+    doc.params[1].value.should.be.equal 0
 

@@ -33,6 +33,7 @@ class Code
 
     @tokens.filter (token) =>
       switch token.type
+
         when 'INDENT'
           indent += token.source
           return
@@ -48,8 +49,10 @@ class Code
 
         when 'HERECOMMENT'
           return if token.source.charAt(0) isnt '*'
+
           doc = new Doc token.source
           param = null
+          names = []
           isParam = false
           isParamValue = false
           @filterAt(token.range.last_line + 1).forEach (relatedToken) =>
@@ -60,30 +63,32 @@ class Code
                 classDoc.type = type
                 classIndent = indent
               when '@'
-                doc.modifier = 'STATIC'
+                doc.modifier = 'static'
               when 'IDENTIFIER'
                 if isParam
                   param = new Param source
                   doc.pushParam param
                 else
-                  doc.name? source
-#              when '.'
-#                doc.pushName source
+                  names?.push source
+              when '.'
+                names?.push source
               when '='
                 if isParam
                   isParamValue = true
                 else
-                  doc.fixName()
+                  doc.name = names.join ''
+                  names = null
                   docs.push doc
                   return
               when ':'
                 return if isParam
-                doc.fixName()
+                doc.name = names.join ''
+                names = null
                 if classDoc?
-                  if doc.modifier is 'STATIC'
+                  if doc.modifier is 'static'
                     classDoc.pushStatic doc
                   else
-                    doc.modifier = 'MEMBER'
+                    doc.modifier = 'member'
                     classDoc.pushMember doc
                 else
                   docs.push doc
@@ -127,15 +132,6 @@ class Doc
   constructor: (description = '') ->
     @type = 'variable'
     @description = description.replace /^\*\s*(.*?)\s*$/, '$1'
-
-  name: (val) ->
-    unless val?
-      return @_name
-    @_name = val
-
-  fixName: ->
-    @name = @_name
-    delete @_name
 
   pushParam: ->
     unless @params?
