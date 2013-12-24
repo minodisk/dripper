@@ -66,7 +66,7 @@ class Code
                 doc.modifier = 'static'
               when 'IDENTIFIER'
                 if isParam
-                  param = new Param source
+                  param = name: source
                   doc.pushParam param
                 else
                   name = source
@@ -151,31 +151,52 @@ class ClassDoc extends Doc
     @members.push.apply @members, arguments
 
 
-class Param
-
-  constructor: (@name, @value = null) ->
-
-
 class Description
 
-  rMeta: /^@(\S+)\s+(.*)/m
+  rMeta: /^@(\S+)\s+(.*)/mg
   rComment: /^\*\s*(.*?)\s*$/
 
   constructor: (comment) ->
-    @metas = []
+    @meta = new Meta()
     comment = comment.replace @rMeta, =>
-      @metas.push new Meta arguments[1], arguments[2]
+      @meta.add arguments[1], arguments[2]
       ''
     @text = comment.replace @rComment, '$1'
-
-#    console.log @text
-#    console.log @metas
 
 
 class Meta
 
-  constructor: (@type, value) ->
+  constructor: ->
+    @namespace = ''
+    @params = []
+    @returns = ''
+    @const = false
+    @deprecated = ''
+    @license = ''
+    @member = null
+
+  add: (type, value) ->
     switch type
-      when ''
+      when 'param'
+        @params.push new Param value
+      when 'returns'
+        @returns = new Returns value
       else
-        @value = value
+        @[type] = value
+
+
+class Param
+
+  rNameTypeDescription: /(?:{(.*?)})?\s+(.*?)\s+(.*)/
+
+  constructor: (description) ->
+    [ {}, @type, @name, @text ] = @rNameTypeDescription.exec description
+
+
+class Returns
+
+  rTypeDescription: /(?:{(.*?)})?\s+(.*)/
+
+  constructor: (description) ->
+    [ {}, @type, @text ] = @rTypeDescription.exec description
+

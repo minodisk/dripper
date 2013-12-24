@@ -1,9 +1,8 @@
 chai = require 'chai'
-dripper = require '../lib/dripper'
-{ spawn } = require 'child_process'
-
 should = chai.should()
 
+dripper = require '../lib/dripper'
+{ inspect } = require 'util'
 
 codes =
   'class': """
@@ -46,6 +45,12 @@ $.fn.extend
   ###
   findBranch = (items...) -> @find items.join '>'
 """
+
+dump = (args...) ->
+#  console.log inspect.apply inspect, arguments, depth: null
+  for arg in args
+    console.log JSON.stringify arg, null, 2
+
 
 describe 'dripper', ->
 
@@ -106,8 +111,7 @@ $.$window = $ window
     doc = dripper.parse(code)[0]
     doc.type.should.be.equal 'variable'
     doc.description.text.should.be.equal 'dotted variable'
-    doc.description.metas[0].type.should.be.equal 'namespace'
-    doc.description.metas[0].value.should.be.equal '$'
+    doc.description.meta.namespace.should.be.equal '$'
     doc.name.should.be.equal '$window'
 
   it 'should parse dotted function', ->
@@ -121,8 +125,7 @@ $.fn.findAt = (selector, index = 0) -> @find(selector).eq(index)
     doc = dripper.parse(code)[0]
     doc.type.should.be.equal 'function'
     doc.description.text.should.be.equal 'dotted function'
-    doc.description.metas[0].type.should.be.equal 'namespace'
-    doc.description.metas[0].value.should.be.equal '$.fn'
+    doc.description.meta.namespace.should.be.equal '$.fn'
     doc.name.should.be.equal 'findAt'
     doc.params[0].name.should.be.equal 'selector'
     should.not.exist doc.params[0].value
@@ -141,19 +144,20 @@ $ =
     ###*
     objective function
     @namespace $.fn
+    @param {String} selector This is 1st param description.
+    @returns {jQuery} This is returns description.
     ###
     findAndSelf: (selector) -> @find(selector).addBack().find selector
 """
     docs = dripper.parse code
+#    dump docs
     docs[0].type.should.be.equal 'variable'
     docs[0].description.text.should.be.equal 'objective variable'
-    docs[0].description.metas[0].type.should.be.equal 'namespace'
-    docs[0].description.metas[0].value.should.be.equal '$'
+    docs[0].description.meta.namespace.should.be.equal '$'
     docs[0].name.should.be.equal 'halfPi'
     docs[1].type.should.be.equal 'function'
     docs[1].description.text.should.be.equal 'objective function'
-    docs[1].description.metas[0].type.should.be.equal 'namespace'
-    docs[1].description.metas[0].value.should.be.equal '$.fn'
+    docs[1].description.meta.namespace.should.be.equal '$.fn'
     docs[1].name.should.be.equal 'findAndSelf'
     docs[1].params[0].name.should.be.equal 'selector'
     should.not.exist docs[1].params[0].value
