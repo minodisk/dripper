@@ -66,10 +66,15 @@ class Code
                 doc.modifier = 'static'
               when 'IDENTIFIER'
                 if isParam
-                  param = name: source
+                  param =
+                    name: source
+                    isRest: false
                   doc.pushParam param
                 else
                   name = source
+              when '...'
+                if isParam
+                  param.isRest = true
 #              when '.'
 #                names?.push source
               when '='

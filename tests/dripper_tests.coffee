@@ -37,13 +37,6 @@ class Foo
   ###
   add: (value) ->
     @value += value
-""",
-  'extended function': """
-$.fn.extend
-  ###*
-  extended function
-  ###
-  findBranch = (items...) -> @find items.join '>'
 """
 
 dump = (args...) ->
@@ -161,3 +154,24 @@ $ =
     docs[1].name.should.be.equal 'findAndSelf'
     docs[1].params[0].name.should.be.equal 'selector'
     should.not.exist docs[1].params[0].value
+
+  it 'should parse extended variable and function', ->
+    code = """
+$.fn.extend
+  ###*
+  extended function
+  @namespace $.fn
+  @param {Array<String>} items... This is 1st param description.
+  @returns {jQuery} This is returns description.
+  ###
+  findBranch = (items..., b) -> @find items.join '>'
+"""
+    docs = dripper.parse code
+    dump docs
+    docs[0].type.should.be.equal 'function'
+    docs[0].description.text.should.be.equal 'extended function'
+    docs[0].description.meta.namespace.should.be.equal '$.fn'
+    docs[0].name.should.be.equal 'findBranch'
+    docs[0].params[0].name.should.be.equal 'items'
+    docs[0].params[0].isRest.should.be.true
+    should.not.exist docs[0].params[0].value

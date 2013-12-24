@@ -12,8 +12,7 @@
   inspect = require('util').inspect;
 
   codes = {
-    'class': "###*\nclass\n###\nclass Foo\n\n  ###*\n  class property\n  ###\n  @a: 3\n\n  ###*\n  class function\n  ###\n  @add: (a, b) ->\n    new Foo a.value + b.value\n\n  ###*\n  prototype property\n  ###\n  a: 3\n\n  ###*\n  constructor\n  ###\n  constructor: (value = 0) ->\n\n  ###*\n  member function\n  ###\n  add: (value) ->\n    @value += value",
-    'extended function': "$.fn.extend\n  ###*\n  extended function\n  ###\n  findBranch = (items...) -> @find items.join '>'"
+    'class': "###*\nclass\n###\nclass Foo\n\n  ###*\n  class property\n  ###\n  @a: 3\n\n  ###*\n  class function\n  ###\n  @add: (a, b) ->\n    new Foo a.value + b.value\n\n  ###*\n  prototype property\n  ###\n  a: 3\n\n  ###*\n  constructor\n  ###\n  constructor: (value = 0) ->\n\n  ###*\n  member function\n  ###\n  add: (value) ->\n    @value += value"
   };
 
   dump = function() {
@@ -77,7 +76,7 @@
       doc.params[1].name.should.be.equal('index');
       return doc.params[1].value.should.be.equal(0);
     });
-    return it('should parse objective variable and function', function() {
+    it('should parse objective variable and function', function() {
       var code, docs;
       code = "$ =\n  ###*\n  objective variable\n  @namespace $\n  ###\n  halfPi: Math.PI / 2\n  fn:\n    ###*\n    objective function\n    @namespace $.fn\n    @param {String} selector This is 1st param description.\n    @returns {jQuery} This is returns description.\n    ###\n    findAndSelf: (selector) -> @find(selector).addBack().find selector";
       docs = dripper.parse(code);
@@ -91,6 +90,19 @@
       docs[1].name.should.be.equal('findAndSelf');
       docs[1].params[0].name.should.be.equal('selector');
       return should.not.exist(docs[1].params[0].value);
+    });
+    return it('should parse extended variable and function', function() {
+      var code, docs;
+      code = "$.fn.extend\n  ###*\n  extended function\n  @namespace $.fn\n  @param {Array<String>} items... This is 1st param description.\n  @returns {jQuery} This is returns description.\n  ###\n  findBranch = (items..., b) -> @find items.join '>'";
+      docs = dripper.parse(code);
+      dump(docs);
+      docs[0].type.should.be.equal('function');
+      docs[0].description.text.should.be.equal('extended function');
+      docs[0].description.meta.namespace.should.be.equal('$.fn');
+      docs[0].name.should.be.equal('findBranch');
+      docs[0].params[0].name.should.be.equal('items');
+      docs[0].params[0].isRest.should.be["true"];
+      return should.not.exist(docs[0].params[0].value);
     });
   });
 
