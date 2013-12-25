@@ -4,6 +4,9 @@
 # OS: Win
 Thumb.db
 
+# Node
+node_modules/*
+
 # IDE: IntelliJ
 *.iml
 .idea/

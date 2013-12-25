@@ -1,21 +1,50 @@
 fs = require 'fs'
+path = require 'path'
+commander = require 'commander'
+
 coffee = require 'coffee-script'
 
-
 module.exports =
+
+  run: ->
+    { version } = JSON.parse fs.readFileSync path.join(__dirname, '..', 'package.json'), 'utf8'
+
+    commander
+    .version(version)
+    .usage('dripper [options] <input>')
+    .option('-e, --engine <engine>', 'template engine <ejs>', 'ejs')
+    .option('-t, --template <filename>', 'template file <readme.ejs>', 'readme.ejs')
+    .option('-o, --output <filename>', 'output file <readme.md>', 'readme.md')
+    .parse(process.argv)
+
+    unless (input = commander.args[0])?
+      throw new TypeError 'input is required'
+
+    docs = @parse fs.readFileSync input, 'utf8'
+    text = @render docs, commander.engine, fs.readFileSync commander.template, 'utf8'
+    fs.writeFileSync commander.output, text
 
   parse: (source) ->
     code = new Code source
     code.filterJSDocs()
 
-  render: (engine = 'ejs', options = {}) ->
-    renderer = new Renderer engine, options
+  render: (docs, engine = 'ejs', template = null, options = {}) ->
+    renderer = new Renderer engine, template, options
+    renderer.render docs
 
 class Renderer
 
-  constructor: ->
+  constructor: (engine = 'ejs', template = null, options = {}) ->
+    unless template?
+      unless Renderer.defaultTemplate?
+        Renderer.defaultTemplate = fs.readFileSync 'assets/template.ejs', 'utf8'
+      template = Renderer.defaultTemplate
+
     engine = require engine
-    engine.render template, options
+    @renderer = engine.compile template, options
+
+  render: (docs) ->
+    @renderer docs: docs
 
 
 class Code
@@ -184,7 +213,7 @@ class Meta
     switch type
       when 'param'
         @params.push new Param value
-      when 'returns'
+      when 'return', 'returns'
         @returns = new Returns value
       else
         @[type] = value

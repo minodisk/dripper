@@ -4,6 +4,8 @@ should = chai.should()
 dripper = require '../lib/dripper'
 { inspect } = require 'util'
 
+fs = require 'fs'
+
 codes =
   'class': """
 ###*
@@ -155,23 +157,30 @@ $ =
     docs[1].params[0].name.should.be.equal 'selector'
     should.not.exist docs[1].params[0].value
 
-  it 'should parse extended variable and function', ->
+  it 'should parse extended rest parameter', ->
     code = """
 $.fn.extend
   ###*
   extended function
   @namespace $.fn
-  @param {Array<String>} items... This is 1st param description.
-  @returns {jQuery} This is returns description.
+  @param {Array<String>} items... Rest parameter
   ###
-  findBranch = (items..., b) -> @find items.join '>'
+  findBranch = (items...) -> @find items.join '>'
 """
     docs = dripper.parse code
-    dump docs
-    docs[0].type.should.be.equal 'function'
-    docs[0].description.text.should.be.equal 'extended function'
-    docs[0].description.meta.namespace.should.be.equal '$.fn'
-    docs[0].name.should.be.equal 'findBranch'
+#    dump docs
     docs[0].params[0].name.should.be.equal 'items'
     docs[0].params[0].isRest.should.be.true
-    should.not.exist docs[0].params[0].value
+
+  it 'should parse abbreviated parameter', ->
+    code = """
+###*
+@param a A
+@param {Number} B
+###
+add: (a, b) ->  a + b
+"""
+    docs = dripper.parse fs.readFileSync '../jquery-tm/lib/jquery.tm-0.5.8.coffee', 'utf8'
+    console.log docs
+    html = dripper.render docs
+    fs.writeFileSync 'jquery.tm.md', html

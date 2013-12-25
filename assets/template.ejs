@@ -1,0 +1,28 @@
+
+## Import
+```html
+<script src="jquery-1.10.1.min.js">
+```
+
+## Make
+```bash
+$ node make.js -w
+```
+
+## API Documentation
+
+<% docs.forEach(function (doc) { %>
+### <%- doc.name %>
+<%- doc.text %>
+
+<% if (doc.description.meta.params.length) { %>
+**Params**
+  <% doc.description.meta.params.forEach(function (param) { %>
+* **<%- param.name %>** : *<%- param.type %>* - <%- param.text %> <% if (param.optional) { %>(オプション)<% } %> <% if (param.defaultValue) { %>(デフォルト値 `<%- param.defaultValue %>`)<% } %>
+  <% }); %>
+<% } %>
+
+<% if (doc.description.meta.return) { %>**Return**
+* *<%- doc.description.meta.return.type %>* - <%- doc.description.meta.return.text %>
+<% } %>
+<% }) %>
