@@ -1,25 +1,32 @@
 {
-  "name"        : "dripper",
-  "version"     : "0.0.0",
-  "description" : "CoffeeScript document generator",
-  "tags"        : [
-  ],
-  "author"      : {
-    "name" : "Daisuke Mino",
+  "name": "dripper",
+  "version": "0.0.0",
+  "description": "CoffeeScript document generator",
+  "tags": [],
+  "author": {
+    "name": "Daisuke Mino",
     "email": "daisuke.mino@gmail.com"
   },
-  "repository"  : {
+  "repository": {
     "type": "git",
-    "url" : "https://minodisk@github.com/minodisk/dripper.git"
+    "url": "https://minodisk@github.com/minodisk/dripper.git"
   },
-  "engines"     : {
+  "engines": {},
+  "license": "MIT",
+  "bin": {
+    "dripper": "./bin/dripper"
   },
-  "license"     : "MIT",
+  "main": "./lib/dripper",
   "dependencies": {
     "commander": ">=2.1.0"
   },
-  "bin"         : {
-    "dripper": "./bin/dripper"
-  },
-  "main"        : "./lib/dripper"
+  "devDependencies": {
+    "grunt-contrib-concat": "~0.3.0",
+    "grunt-contrib-coffee": "~0.8.0",
+    "grunt-contrib-clean": "~0.5.0",
+    "grunt-release": "~0.6.0",
+    "grunt-contrib-watch": "~0.5.3",
+    "grunt": "~0.4.2",
+    "grunt-simple-mocha": "~0.4.0"
+  }
 }
